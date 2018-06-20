@@ -1,0 +1,9 @@
+.woocommerce-checkout a.remove {
+	display: inline-block;
+}
+.woocommerce-checkout .quantity {
+	display: inline;
+}
+.woocommerce-checkout .quantity .qty {
+	float: right;
+}

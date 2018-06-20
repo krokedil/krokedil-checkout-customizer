@@ -26,24 +26,31 @@ class Krokedil_Checkout_Customizer_Order_Lines {
 	 * Krokedil_Checkout_Customizer_Order_Lines constructor.
 	 */
 	protected function __construct() {
+		add_filter( 'woocommerce_cart_item_name', array( $this, 'add_remove_icon' ), 10, 3 );
 		add_filter( 'woocommerce_checkout_cart_item_quantity', array( $this, 'add_quantity_field' ), 10, 3 );
 	}
 	
-
+	public function add_remove_icon( $product_name, $cart_item, $cart_item_key ) {
+		if( is_checkout() ) {
+			$_product 	= $cart_item['data'];
+			$product_id = $cart_item['product_id'];
+			$remove = apply_filters( 'woocommerce_cart_item_remove_link', sprintf(
+				'<a href="%s" class="remove" aria-label="%s" data-product_id="%s" data-product_sku="%s">&times;</a>',
+				esc_url( wc_get_cart_remove_url( $cart_item_key ) ),
+				__( 'Remove this item', 'woocommerce' ),
+				esc_attr( $product_id ),
+				esc_attr( $_product->get_sku() )
+			), $cart_item_key );
+			$product_name = $remove . ' ' . $product_name;
+		}
+		return $product_name;
+	}
+	
 	public function add_quantity_field( $output, $cart_item, $cart_item_key ) {
-		if ( 'kco' === WC()->session->get( 'chosen_payment_method' ) ) {
+		//if ( 'kco' === WC()->session->get( 'chosen_payment_method' ) ) {
+		if( is_checkout() ) {
 			foreach ( WC()->cart->get_cart() as $cart_key => $cart_value ) {
 				if ( $cart_key === $cart_item_key ) {
-
-					$product_id = $cart_item['product_id'];
-					$_product   = $cart_item['data'] ;
-					$return_value = sprintf(
-					  '<a href="%s" class="remove" title="%s" data-product_id="%s" data-product_sku="%s">&times;</a>',
-					  esc_url( wc_get_cart_remove_url( $cart_key ) ),
-					  __( 'Remove this item', 'woocommerce' ),
-					  esc_attr( $product_id ),
-					  esc_attr( $_product->get_sku() )
-					);
 
 					$_product = $cart_item['data'];
 					if ( $_product->is_sold_individually() ) {

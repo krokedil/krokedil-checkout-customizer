@@ -24,6 +24,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
+define( 'KCC_VERSION', '0.1.0' );
+
+
 /**
  * Class Krokedil_Checkout_Customizer
  */
@@ -33,6 +36,7 @@ class Krokedil_Checkout_Customizer {
 	 */
 	public function __construct() {
 		add_action( 'plugins_loaded', array( $this, 'init_plugin' ) );
+		add_action( 'wp_enqueue_scripts', array( $this, 'load_scripts' ) );
 	}
 
 	/**
@@ -40,6 +44,38 @@ class Krokedil_Checkout_Customizer {
 	 */
 	public function init_plugin() {
 		include_once 'classes/class-kcc-order-lines.php';
+		include_once 'classes/class-kcc-ajax.php';
+	}
+
+	/**
+	 * Enqueue scripts.
+	 */
+	public function load_scripts() {
+		if ( is_checkout() ) {
+			wp_register_script( 
+				'krokedil_checkout_customizer', 
+				plugins_url( '/assets/js/krokedil-checkout-customizer.js', 
+				__FILE__ ), 
+				array( 'jquery' ), 
+				KCC_VERSION 
+			);
+
+			wp_register_style( 
+				'krokedil_checkout_customizer', 
+				plugins_url( '/assets/css/krokedil-checkout-customizer.css', 
+				__FILE__ ), 
+				array(), 
+				KCC_VERSION 
+			);
+			
+			wp_localize_script( 'krokedil_checkout_customizer', 'kcc_params', array(
+				'checkout_nonce'			=> wp_create_nonce( 'kcc_nonce' ),
+				'update_cart_url'			=> WC_AJAX::get_endpoint( 'kcc_wc_update_cart' ),
+			) );
+
+			wp_enqueue_script( 'krokedil_checkout_customizer' );
+			wp_enqueue_style( 'krokedil_checkout_customizer' );
+		}
 	}
 }
 new Krokedil_Checkout_Customizer();
